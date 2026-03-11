@@ -3,11 +3,11 @@ name: github-pr-dashboard
 description: >
   Dashboard card showing open GitHub pull requests across all repos.
   Uses the gh CLI to fetch PRs authored by the current user.
-  Displays repo name, title, branch, CI status, review status, and links to GitHub.
+  Displays repo name, title, branch, CI status, review status, comments, and links to GitHub.
   Auto-refreshes every 5 minutes with a manual refresh button.
   Triggers: "check PRs", "open pull requests", "my PRs".
   NOT for: creating PRs (use gh CLI directly), code review (use GitHub).
-version: 0.1.0
+version: 0.2.0
 allowed-tools: Bash
 
 metadata:
@@ -31,10 +31,11 @@ Dashboard card plugin that shows your open GitHub pull requests.
 
 ## How It Works
 
-1. **fetch-prs.sh** runs `gh pr list --author @me --state open` and writes structured data to `data.jsonl`
+1. **fetch-prs.sh** runs `gh pr list --author @me --state open` and writes structured data to `data.jsonl`, including PR comments fetched via `gh api`
 2. **superbot.json** declares the card manifest with a `github-prs` renderer and `refreshCommand`
 3. The dashboard auto-discovers the card via the skill-platform protocol and renders it with the custom renderer
 4. Each PR shows: CI status dot, repository name, PR number, title, branch name, review badge, time ago, and a clickable link to GitHub
+5. PRs with comments show an expandable comment section with author avatar, name, timestamp, and comment body
 
 ## Requirements
 
@@ -52,6 +53,8 @@ Each PR includes:
 - `ciStatus` — passing, failing, pending, or none
 - `reviewDecision` — APPROVED, CHANGES_REQUESTED, REVIEW_REQUIRED, or empty
 - `checksRaw` — raw JSON of CI check results
+- `commentCount` — number of comments on the PR
+- `comments` — JSON string of comment objects (id, author, avatarUrl, body, createdAt)
 
 ## Plugin Structure
 

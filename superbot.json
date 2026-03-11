@@ -1,7 +1,7 @@
 {
   "name": "Pull Requests",
   "description": "Open GitHub pull requests authored by you, with CI and review status",
-  "version": "0.1.0",
+  "version": "0.2.0",
 
   "card": {
     "dataSource": "data.jsonl",
@@ -15,7 +15,9 @@
       "url": { "type": "string", "label": "GitHub URL" },
       "ciStatus": { "type": "string", "label": "CI Status" },
       "reviewDecision": { "type": "string", "label": "Review Decision" },
-      "checksRaw": { "type": "string", "label": "Raw CI check data" }
+      "checksRaw": { "type": "string", "label": "Raw CI check data" },
+      "commentCount": { "type": "number", "label": "Comment Count" },
+      "comments": { "type": "string", "label": "PR Comments JSON" }
     },
     "display": {
       "title": "repo",

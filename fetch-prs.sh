@@ -7,17 +7,19 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DATA_FILE="$SCRIPT_DIR/data.jsonl"
 TEMP_FILE="$DATA_FILE.tmp"
 
-# Fetch PRs via gh CLI
+# Fetch PRs via gh CLI (include owner for comment fetching)
 RAW_JSON=$(gh pr list \
   --author @me \
   --state open \
-  --json number,title,headRefName,url,statusCheckRollup,createdAt,reviewDecision,headRepository \
+  --json number,title,headRefName,url,statusCheckRollup,createdAt,reviewDecision,headRepository,headRepositoryOwner \
   2>/dev/null || echo '[]')
 
-# Transform each PR into a card item and write to temp file
+# Transform each PR into a card item, fetch comments, and write to temp file
 echo "$RAW_JSON" | node -e "
 const fs = require('fs');
+const { execSync } = require('child_process');
 const input = JSON.parse(fs.readFileSync('/dev/stdin', 'utf8'));
+
 const lines = input.map(pr => {
   // Determine CI status from check rollup
   const checks = pr.statusCheckRollup || [];
@@ -31,6 +33,22 @@ const lines = input.map(pr => {
   }
 
   const repo = pr.headRepository?.name || 'unknown';
+  const owner = pr.headRepositoryOwner?.login || '';
+
+  // Fetch comments via gh api (issue comments = PR conversation)
+  let comments = [];
+  if (owner && repo !== 'unknown') {
+    try {
+      const raw = execSync(
+        'gh api repos/' + owner + '/' + repo + '/issues/' + pr.number + '/comments --jq \"[.[] | {id: .id, author: .user.login, avatarUrl: .user.avatar_url, body: .body, createdAt: .created_at}]\"',
+        { timeout: 10000, encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] }
+      );
+      comments = JSON.parse(raw.trim() || '[]');
+    } catch (e) {
+      // Silently skip — comments are not critical
+    }
+  }
+
   return JSON.stringify({
     id: repo + '-' + pr.number,
     status: 'open',
@@ -43,6 +61,8 @@ const lines = input.map(pr => {
     ciStatus: ciStatus,
     reviewDecision: pr.reviewDecision || '',
     checksRaw: JSON.stringify(checks),
+    commentCount: comments.length,
+    comments: JSON.stringify(comments),
   });
 });
 process.stdout.write(lines.join('\n') + (lines.length ? '\n' : ''));
