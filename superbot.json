@@ -1,0 +1,38 @@
+{
+  "name": "Pull Requests",
+  "description": "Open GitHub pull requests authored by you, with CI and review status",
+  "version": "0.1.0",
+
+  "card": {
+    "dataSource": "data.jsonl",
+    "renderer": "github-prs",
+    "refreshCommand": "bash fetch-prs.sh",
+    "itemSchema": {
+      "repo": { "type": "string", "label": "Repository" },
+      "prNumber": { "type": "number", "label": "PR Number" },
+      "title": { "type": "string", "label": "Title" },
+      "branch": { "type": "string", "label": "Branch" },
+      "url": { "type": "string", "label": "GitHub URL" },
+      "ciStatus": { "type": "string", "label": "CI Status" },
+      "reviewDecision": { "type": "string", "label": "Review Decision" },
+      "checksRaw": { "type": "string", "label": "Raw CI check data" }
+    },
+    "display": {
+      "title": "repo",
+      "body": "title",
+      "subtitle": "branch",
+      "meta": "ciStatus"
+    },
+    "statusFlow": ["open"],
+    "defaultFilter": { "status": "open" },
+    "actions": []
+  },
+
+  "schedule": {
+    "default": {
+      "time": "09:00",
+      "days": ["mon", "tue", "wed", "thu", "fri"]
+    },
+    "configurable": true
+  }
+}
